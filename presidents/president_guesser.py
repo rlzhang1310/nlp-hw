@@ -2,6 +2,7 @@ import time
 
 from guesser import Guesser
 from collections import defaultdict
+from datetime import datetime
 
 kPRESIDENT_DATA = {"train": [
   {"start": 1789, "stop": 1797, "name": "George Washington"},
@@ -65,16 +66,68 @@ kPRESIDENT_DATA = {"train": [
 class PresidentGuesser(Guesser):
     def train(self, training_data):
         self._lookup = defaultdict(dict)
-            
+        for line in training_data:
+            for i in range(line["start"], line["stop"]):
+                self._lookup[str(i)] = line["name"]
+        self._lookup["1788"] = 'George Washington'
+
     def __call__(self, question, n_guesses=1):
         # Update this code so that we can have a different president than Joe
         # Biden
-        candidates = ["Joseph R. Biden"]
+        date_str = question[25:-1]
+        date_format = "%b %d %H:%M:%S %Y"
+        date = datetime.strptime(date_str, date_format)
+        year = int(question[-5:-1])
 
+        ## WILLIAM HENRY 3/4-4/4 1841
+        ## JAMES GARFIELD 3/4-9/19 1881
+        jan_twenty = datetime(year, 1, 20, 12, 0, 0)
+        april_fifteen = datetime(year, 4, 15, 12, 0, 0)
+        apr_twenty = datetime(year, 4, 20, 12, 0, 0)
+        apr_twelth = datetime(year, 4, 12, 12, 0, 0)
+        jul_ninth = datetime(year, 7, 9, 12, 0, 0)
+        march_fourth = datetime(year, 3, 4, 12, 0, 0)
+        april_fourth = datetime(year, 4, 4, 12, 0, 0)
+        september_nineteen = datetime(year, 9, 19, 12, 0, 0)
+        september_fourteen = datetime(year, 9, 14, 12, 0, 0)
+        aug_second = datetime(year, 8, 2, 12, 0, 0)
+        aug_ninth = datetime(year, 8, 9, 12, 0, 0)
+        nov_twentytwo = datetime(year,11, 22, 12, 0, 0)
+        if year == 1881 and date < september_nineteen and date > march_fourth:
+            return [{"guess": "James A. Garfield"}]
+        elif year == 1841 and date < april_fourth and date > march_fourth:
+            return [{"guess": "William Henry Harrison"}]
+        elif year == 1841 and date < apr_twenty:
+            year -= 1
+        elif year == 1850 and date < jul_ninth:
+            year -= 1
+        elif year == 1841 and date < april_fourth:
+            year -= 1
+        elif year == 1865 and date < april_fifteen:
+            year -= 1
+        elif year == 1881 and date < september_nineteen:
+            year -= 1
+        elif year == 1901 and date < september_fourteen:
+            year -= 1
+        elif year == 1923 and date < aug_second:
+            year -= 1
+        elif year == 1945 and date < apr_twelth:
+            year -= 1
+        elif year == 1963 and date < nov_twentytwo:
+            year -= 1
+        elif year == 1974 and date < aug_ninth:
+            year -= 1
+        elif year >= 1953 and date < jan_twenty:
+            year -= 1
+        elif year < 1953 and date < march_fourth:
+            year -= 1
+
+        candidates =  [self._lookup[str(year)]]
         if len(candidates) == 0:
             return [{"guess": ""}]
         else:
             return [{"guess": x} for x in candidates]
+
         
 if __name__ == "__main__":
     pg = PresidentGuesser()

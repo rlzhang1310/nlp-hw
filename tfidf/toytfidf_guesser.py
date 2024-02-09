@@ -56,6 +56,7 @@ class ToyTfIdfGuesser(Guesser):
 
         # Add your code here!
         self._doc_counts = FreqDist()
+        self._word_counts = defaultdict(0)
 
     def train(self, training_data, answer_field='page', split_by_sentence=False):
         # Extract the data into self.answers, self.questions
@@ -104,11 +105,10 @@ class ToyTfIdfGuesser(Guesser):
         assert max_n_guesses == 1, "We only support top guess"
         
         question_tfidf = self.embed(question).reshape(1, -1)
-
+        print(question_tfidf)
         # This code is wrong, you need to fix it.  You'll want to use "argmax" and perhapse "reshape"
         best = 0
         cosine = np.zeros(5)
-        
         
         return [{"question": self.questions[best],
                  "guess": self.answers[best],
@@ -166,6 +166,7 @@ class ToyTfIdfGuesser(Guesser):
             "Trying to add new words to finalized vocab"
 
         # Add your code here!
+        self._word_counts[word] += count
 
     def scan_document(self, text: str):
         """
@@ -183,7 +184,8 @@ class ToyTfIdfGuesser(Guesser):
 
         for word in tokenized:
             # You'll need to add code here!
-            None
+            # None
+            self._doc_counts[word] += 1
         self._total_docs += 1
         
     def embed(self, text):
@@ -234,8 +236,10 @@ class ToyTfIdfGuesser(Guesser):
 
         word -- The integer lookup of the word.
         """
-
-        return 0.0
+        if word in self._vocab:
+            return self._doc_counts[word]
+        else:
+            return 0.0
 
     def inv_docfreq(self, word: int) -> float:
         """Compute the inverse document frequency of a word.  Return 0.0 if
@@ -247,8 +251,10 @@ class ToyTfIdfGuesser(Guesser):
 
         """
         assert self._docs_final, "Documents must be finalized"
-        
-        return 0.0
+        if word in self._vocab:
+            return 0.0
+        else:
+            return log(self._total_docs / self._doc_counts[word])
 
     def vocab_lookup(self, word: str) -> int:
         """
@@ -284,7 +290,11 @@ class ToyTfIdfGuesser(Guesser):
         self._vocab_final = True
 
         # The following line of code lets things run to get an answer, but you need not leave it!
-        self._vocab[kUNK] = 0
+        for idx, vocab, count in enumerate(self._doc_counts.most_common()):
+            if count < self.unk_cutoff:
+                break
+            self._vocab[vocab] = idx
+        # self._vocab[kUNK] = 0
 
         self._vocab_size = len(self._vocab)
         assert kUNK in self._vocab
