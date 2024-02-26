@@ -57,7 +57,7 @@ class GuessBlankFeature(Feature):
     """
     Is guess blank?
     """
-    def __call__(self, question, run, guess):
+    def __call__(self, question, run, guess, guess_history):
         yield ('true', len(guess) == 0)
 
 
@@ -65,9 +65,25 @@ class GuessCapitalsFeature(Feature):
     """
     Capital letters in guess
     """
-    def __call__(self, question, run, guess):
+    def __call__(self, question, run, guess, guess_history):
         yield ('true', log(sum(i.isupper() for i in guess) + 1))
 
+class FrequencyFeature:                       
+    def __init__(self, name):                 
+        from eval import normalize_answer   
+        self.name = name                      
+        self.counts = Counter()               
+        self.normalize = normalize_answer     
+
+    def add_training(self, question_source):    
+        import json                 
+        with open(question_source) as infile:                   
+            questions = json.load(infile)                       
+            for ii in questions:                                
+                self.counts[self.normalize(ii["page"])] += 1    
+
+    def __call__(self, question, run, guess, guess_history):                               
+	    yield ("guess", log(1 + self.counts[self.normalize(guess)]))
 
 if __name__ == "__main__":
     """
