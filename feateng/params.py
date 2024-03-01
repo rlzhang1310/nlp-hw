@@ -219,7 +219,7 @@ def load_buzzer(flags, load=False):
         if ff == "Frequency":                                  
             from features import FrequencyFeature              
             feature = FrequencyFeature(ff)                     
-            feature.add_training("../data/qanta.buzztrain.json")
+            feature.add_training("./data/qanta.buzztrain.json")
             buzzer.add_feature(feature)
             features_added.add(ff)
         if ff == "Blank":
