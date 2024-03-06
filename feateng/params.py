@@ -31,7 +31,7 @@ def add_buzzer_params(parser):
     parser.add_argument('--buzzer_guessers', nargs='+', default = ['Tfidf'], help='Guessers to feed into Buzzer', type=str)
     parser.add_argument('--buzzer_history_length', type=int, default=0, help="How many time steps to retain guesser history")
     parser.add_argument('--buzzer_history_depth', type=int, default=0, help="How many old guesses per time step to keep")    
-    parser.add_argument('--features', nargs='+', help='Features to feed into Buzzer', type=str,  default=['Length', 'Frequency', 'Category'])    
+    parser.add_argument('--features', nargs='+', help='Features to feed into Buzzer', type=str,  default=['Length', 'Difficulty', 'Capital', 'Category'])    
     parser.add_argument('--buzzer_type', type=str, default="LogisticBuzzer")
     parser.add_argument('--run_length', type=int, default=100)
     parser.add_argument('--primary_guesser', type=str, default='Tfidf', help="What guesser does buzzer depend on?")
@@ -219,7 +219,7 @@ def load_buzzer(flags, load=False):
         if ff == "Frequency":                                  
             from features import FrequencyFeature              
             feature = FrequencyFeature(ff)                     
-            feature.add_training("./data/qanta.buzztrain.json")
+            feature.add_training("./data/qanta.buzztrain.json.gz")
             buzzer.add_feature(feature)
             features_added.add(ff)
         if ff == "Blank":
@@ -232,6 +232,16 @@ def load_buzzer(flags, load=False):
             feature = GuessCapitalsFeature(ff)
             buzzer.add_feature(feature)
             features_added.add(ff) 
+        if ff == "Category":                                  
+            from features import CategoryFeature              
+            feature = CategoryFeature(ff)                     
+            buzzer.add_feature(feature)
+            features_added.add(ff)
+        if ff == "Difficulty":
+            from features import DifficultyFeature
+            feature = DifficultyFeature(ff)
+            buzzer.add_feature(feature)
+            features_added.add(ff)            
 
     if len(flags.features) != len(features_added):
         error_message = "%i features on command line (%s), but only added %i (%s).  "

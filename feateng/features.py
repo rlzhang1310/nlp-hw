@@ -34,23 +34,46 @@ class LengthFeature(Feature):
 
     def __call__(self, question, run, guess, guess_history):
         # How many characters long is the question?
-        yield ("char", (len(run) - 450) / 450)
+        # yield ("char", (len(run) - 450) / 450)
+        # yield ("char", (len(run) - 420) / 420)
 
         # How many words long is the question?
-        yield ("word", (len(run.split()) - 75) / 75)
+        yield ("word", (len(run.split()) - 70) / 70)
+        # yield ("word", (len(run.split()) - 75) / 75)
+
 
         ftp = 0
 
+
         # How many characters long is the guess?
-        if guess is None or guess=="":
-            yield ("guess", -1)
-        else:
-            yield ("guess", log(1 + len(guess)))
+        # if guess is None or guess=="":
+        #     yield ("guess", -1)
+        # else:
+        #     yield ("guess", log(1 + len(guess)))
 
-            
+class CategoryFeature(Feature):
+    def __call__(self, question, run, guess, guess_history):
+        # yield ("science", question["category"] == "Science")
+        yield ("history", question["category"] == "History")
 
+# class FirstSentenceFeature(Feature):
+#     def __init__(self, name):                 
+#         from eval import normalize_answer   
+#         self.name = name                      
+#         self.normalize = normalize_answer     
 
+#     def add_training(self, question_source):    
+#         import json                 
+#         with gzip.open(question_source) as infile:
+#             questions = json.load(infile)                       
+#             for ii in questions:                                
 
+#     def __call__(self, question, run, guess, guess_history):                            
+#         yield ("guess", log(1 + self.subcat_counts[self.normalize(guess)]))
+
+class DifficultyFeature(Feature):
+    def __call__(self, question, run, guess, guess_history):
+        yield ('college', question['difficulty'] == 'College')
         
         
 class GuessBlankFeature(Feature):
@@ -66,24 +89,28 @@ class GuessCapitalsFeature(Feature):
     Capital letters in guess
     """
     def __call__(self, question, run, guess, guess_history):
-        yield ('true', log(sum(i.isupper() for i in guess) + 1))
+        # yield ('guess_true', log(sum(i.isupper() for i in guess) + 1))
+        yield ('run_true', sum(i.isupper() for i in run) / 70)
 
-class FrequencyFeature:                       
-    def __init__(self, name):                 
-        from eval import normalize_answer   
-        self.name = name                      
-        self.counts = Counter()               
-        self.normalize = normalize_answer     
 
-    def add_training(self, question_source):    
-        import json                 
-        with open(question_source) as infile:                   
-            questions = json.load(infile)                       
-            for ii in questions:                                
-                self.counts[self.normalize(ii["page"])] += 1    
+class FrequencyFeature:
+    def __init__(self, name):
+        from eval import normalize_answer
+        self.name = name
+        self.counts = Counter()
+        self.normalize = normalize_answer
 
-    def __call__(self, question, run, guess, guess_history):                               
-	    yield ("guess", log(1 + self.counts[self.normalize(guess)]))
+    def add_training(self, question_source):
+        import json
+        with gzip.open(question_source) as infile:
+            questions = json.load(infile)
+            for ii in questions:
+                self.counts[self.normalize(ii["page"])] += 1
+
+    def __call__(self, question, run, guess, guess_history):
+        yield ("guess", log(1 + self.counts[self.normalize(guess)]))
+ 
+
 
 if __name__ == "__main__":
     """
